@@ -1,12 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Beacon Geoguessr</title>
+    <title>The Beacon School Geoguessr</title>
+    <style>
+        #image {
+            max-width: 600px;
+            cursor: crosshair;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Beacon Geoguessr</h1>
-    <p>Let's being the game.</p>
-    <img src="{{ image }}" id="locationImage" alt="Location Image" style="max-width: 600px;" />
+    <h1>Guess where this image is in the school!</h1>
+    <img id=""guessImage" src="{ image }" alt="location image" data-id="{{ image_id }}">
+
+    <p id="result"></p>
+
+    <script>
+        const image = document.getElementBYID('guessImage');
+        const result = document.getElementById('result');
+
+        image.addEventLIstener('click', function(event) {
+            const rect = image.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const imageId = image.getAttribute('data-id');
+            const guessData = {
+                x: x,
+                y: y,
+                image_id: imageId 
+            };
+
+            fetch('/guess', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(guessData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                result.textContext = 'Distance from actual location: ${data.distance} pixels';
+            })
+            .catch(error => {
+                result.textContent = 'Error.';
+            });
+        }); 
+    </script>
 </body>
 </html>
