@@ -16,19 +16,19 @@
     <p id="result"></p>
 
     <script>
-        const image = document.getElementBYID('guessImage');
-        const result = document.getElementById('result');
+        window.onload = function() {
+            const image = document.getElementById('location-image');
 
         image.addEventLIstener('click', function(event) {
             const rect = image.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
 
-            const imageId = image.getAttribute('data-id');
-            const guessData = {
-                x: x,
-                y: y,
-                image_id: imageId 
+            const data = {
+                image_id: "{{ image_id }}"
+                x: Math.round(x),
+                y: Math.round(y),
+                
             };
 
             fetch('/guess', {
@@ -36,16 +36,18 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(guessData)
+                body: JSON.stringify(data)
             })
             .then(response => response.json())
-            .then(data => {
-                result.textContext = 'Distance from actual location: ${data.distance} pixels';
+            .then(result => {
+                document.getElementById('result').textContent = 'Distance: ${result.distance}';
             })
             .catch(error => {
-                result.textContent = 'Error.';
+                console.error('Error:', error);
             });
         }); 
     </script>
+
+    <img src"{{ url_for('static', filename='images/' + image) }}" alt="location image"> 
 </body>
 </html>
