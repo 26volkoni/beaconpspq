@@ -8,9 +8,8 @@ app = Flask(__name__)
 def index():
     with open("locations.json") as f:
         locations = json.load(f)
-    location= random.choice(locations)
-    image = location['image']
-    return render_template('index.html', image=image)
+    location = random.choice(locations)
+    return render_template('index.html', location=location, image_id=locations.index(location))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

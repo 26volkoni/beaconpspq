@@ -3,7 +3,7 @@
 <head>
     <title>The Beacon School Geoguessr</title>
     <style>
-        #image {
+        #location-image {
             max-width: 600px;
             cursor: crosshair;
         }
@@ -11,24 +11,22 @@
 </head>
 <body>
     <h1>Guess where this image is in the school!</h1>
-    <img id=""guessImage" src="{ image }" alt="location image" data-id="{{ image_id }}">
-
+   
     <p id="result"></p>
 
     <script>
         window.onload = function() {
             const image = document.getElementById('location-image');
 
-        image.addEventLIstener('click', function(event) {
+        image.addEventListener('click', function(event) {
             const rect = image.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
 
             const data = {
-                image_id: "{{ image_id }}"
+                image_id: "{{ image_id }}",
                 x: Math.round(x),
-                y: Math.round(y),
-                
+                y: Math.round(y)
             };
 
             fetch('/guess', {
@@ -40,14 +38,15 @@
             })
             .then(response => response.json())
             .then(result => {
-                document.getElementById('result').textContent = 'Distance: ${result.distance}';
+                document.getElementById('result').textContent = `Distance: ${result.distance}`;
             })
             .catch(error => {
                 console.error('Error:', error);
             });
         }); 
+        }
     </script>
 
-    <img src"{{ url_for('static', filename='images/' + image) }}" alt="location image"> 
+    <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}" alt="location image" data-id="{{ image_id }}">
 </body>
 </html>
