@@ -3,23 +3,81 @@
 <head>
     <title>The Beacon School Geoguessr</title>
     <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        #main-image {
+            max-width: 90%;
+            text-align: center;
+        }
+
         #location-image {
-            max-width: 600px;
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 12px;
             cursor: crosshair;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        #map-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 140px;
+            height: 140px;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        #map-container:hover {
+            width: 320px;
+            height: 320px;
+        }
+
+        #minimap {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.25);
+        }
+
+        #result {
+            margin-top: 10px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-    <h1>Guess where this image is in the school!</h1>
-   
-    <p id="result"></p>
+    <div id="container">
+        <div id="main-image">
+            <h1>Guess where this image is in the school!</h1>
+            <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}" alt="Location" data-id="{{ image_id }}">
+            <p id="result"></p>
+        </div>
+
+        <div id="map-container">
+            <img id="minimap" src="{{ url_for('static', filename='images/map-placeholder.png') }}" alt="School Map">
+        </div>
+    </div>
 
     <script>
-        window.onload = function() {
-            const image = document.getElementById('location-image');
+    window.onload = function () {
+        const map = document.getElementById('minimap');
 
-        image.addEventListener('click', function(event) {
-            const rect = image.getBoundingClientRect();
+        map.addEventListener('click', function (event) {
+            const rect = map.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
 
@@ -38,15 +96,13 @@
             })
             .then(response => response.json())
             .then(result => {
-                document.getElementById('result').textContent = `Distance: ${result.distance}`;
+                document.getElementById('result').textContent = `Distance: ${result.distance} pixels`;
             })
             .catch(error => {
                 console.error('Error:', error);
             });
-        }); 
-        }
-    </script>
-
-    <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}" alt="location image" data-id="{{ image_id }}">
+        });
+    };
+</script>
 </body>
 </html>
