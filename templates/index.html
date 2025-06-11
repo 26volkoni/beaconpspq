@@ -39,28 +39,42 @@
             transition: all 0.3s ease;
             z-index: 999;
             overflow: hidden;
-            cursor: zoom-in;
         }
 
         #map-container:hover {
-            width: 400px;
-            height: 400px;
+            width: 320px;
+            height: 320px;
         }
 
         #minimap {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
             border-radius: 10px;
             box-shadow: 0 0 12px rgba(0,0,0,0.25);
             transform: rotate(-90deg);
-            transition: all 0.3s ease;
-            transform-origin: center;
+            transition: transform 0.3s ease;
         }
 
         #result {
             margin-top: 10px;
             font-size: 18px;
+        }
+
+        #progress-bar {
+            width: 80%;
+            height: 10px;
+            background: #ccc;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #progress {
+            height: 100%;
+            width: 0;
+            background: green;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
@@ -68,31 +82,61 @@
     <div id="container">
         <div id="main-image">
             <h1>Guess where this image is in the school!</h1>
-            <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}?v={{ cache_buster }}" alt="Location" data-id="{{ image_id }}">
+            <img id="location-image" src="" alt="Location" data-id="">
             <p id="result"></p>
         </div>
 
         <div id="map-container">
             <img id="minimap" src="{{ url_for('static', filename='images/map-placeholder.png') }}?v={{ cache_buster }}" alt="School Map">
         </div>
+
+        <div id="progress-bar">
+            <div id="progress"></div>
+        </div>
     </div>
 
     <script>
+    let round = 0;
+    const maxRounds = 5;
+    const roundScores = [];
+    let timer;
+
+    function loadImage(data) {
+        const locationImg = document.getElementById('location-image');
+        locationImg.src = `/static/images/${data.image}?v=${Date.now()}`;
+        locationImg.setAttribute('data-id', data.image_id);
+    }
+
+    function nextRound() {
+        if (round >= maxRounds) {
+            endGame();
+            return;
+        }
+
+        fetch('/next')
+            .then(res => res.json())
+            .then(data => {
+                round++;
+                document.getElementById('progress').style.width = `${(round / maxRounds) * 100}%`;
+                document.getElementById('result').textContent = "";
+                loadImage(data);
+
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    roundScores.push(0);
+                    nextRound();
+                }, 180000);
+            })
+            .catch(err => console.error("Failed to load next image:", err));
+    }
+
+    function endGame() {
+        clearTimeout(timer);
+        alert("Game Over!\nScores: " + roundScores.join(", "));
+    }
+
     window.onload = function () {
-        const mapContainer = document.getElementById('map-container');
         const map = document.getElementById('minimap');
-        
-        // Handle zoom on hover
-        mapContainer.addEventListener('mousemove', function(e) {
-            const rect = mapContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const percentX = x / rect.width;
-            const percentY = y / rect.height;
-            
-            map.style.transformOrigin = `${percentX * 100}% ${percentY * 100}%`;
-        });
 
         map.addEventListener('click', function (event) {
             const rect = map.getBoundingClientRect();
@@ -100,26 +144,26 @@
             const y = event.clientY - rect.top;
 
             const data = {
-                image_id: "{{ image_id }}",
+                image_id: document.getElementById('location-image').getAttribute('data-id'),
                 x: Math.round(x),
                 y: Math.round(y)
             };
 
             fetch('/guess', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(result => {
                 document.getElementById('result').textContent = `Distance: ${result.distance} pixels`;
+                roundScores.push(result.score);
+                nextRound();
             })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            .catch(error => console.error('Error:', error));
         });
+
+        nextRound();
     };
     </script>
 </body>
