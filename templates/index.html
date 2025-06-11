@@ -1,56 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>The Beacon School Geoguessr</title>
+    <title>The Beacon School GeoGuessr</title>
     <style>
-        body {
+        body, html {
             margin: 0;
+            padding: 0;
+            height: 100%;
             font-family: sans-serif;
-            background-color: #f0f0f0;
+            display: flex;
         }
 
-        #container {
+        #left, #right {
+            width: 50%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #left {
+            background: #f9f9f9;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            position: relative;
+            justify-content: center;
         }
 
-        #main-image {
-            max-width: 90%;
-            text-align: center;
+        #right {
+            background: #e9e9e9;
+            position: relative;
         }
 
         #location-image {
             max-width: 90%;
-            max-height: 80vh;
+            max-height: 90%;
             border-radius: 12px;
-            cursor: crosshair;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        #map-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 140px;
-            height: 140px;
-            transition: all 0.3s ease;
-            z-index: 999;
-        }
-
-        #map-container:hover {
-            width: 320px;
-            height: 320px;
-        }
-
-        #minimap {
+        #school-map {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            border-radius: 10px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.25);
+            object-fit: contain;
+            cursor: crosshair;
         }
 
         #result {
@@ -60,21 +51,19 @@
     </style>
 </head>
 <body>
-    <div id="container">
-        <div id="main-image">
-            <h1>Guess where this image is in the school!</h1>
-            <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}" alt="Location" data-id="{{ image_id }}">
-            <p id="result"></p>
-        </div>
+    <div id="left">
+        <h2>Guess where this is in the school!</h2>
+        <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}" alt="Location">
+        <p id="result"></p>
+    </div>
 
-        <div id="map-container">
-            <img id="minimap" src="{{ url_for('static', filename='images/map-placeholder.png') }}" alt="School Map">
-        </div>
+    <div id="right">
+        <img id="school-map" src="{{ url_for('static', filename='images/map-placeholder.png') }}" alt="School Map">
     </div>
 
     <script>
     window.onload = function () {
-        const map = document.getElementById('minimap');
+        const map = document.getElementById('school-map');
 
         map.addEventListener('click', function (event) {
             const rect = map.getBoundingClientRect();
@@ -103,6 +92,6 @@
             });
         });
     };
-</script>
+    </script>
 </body>
 </html>
