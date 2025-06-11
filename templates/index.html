@@ -1,47 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>The Beacon School GeoGuessr</title>
+    <title>The Beacon School Geoguessr</title>
     <style>
-        body, html {
+        body {
             margin: 0;
-            padding: 0;
-            height: 100%;
             font-family: sans-serif;
-            display: flex;
+            background-color: #f0f0f0;
         }
 
-        #left, #right {
-            width: 50%;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        #left {
-            background: #f9f9f9;
+        #container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding: 20px;
+            position: relative;
         }
 
-        #right {
-            background: #e9e9e9;
-            position: relative;
+        #main-image {
+            max-width: 90%;
+            text-align: center;
         }
 
         #location-image {
             max-width: 90%;
-            max-height: 90%;
+            max-height: 80vh;
             border-radius: 12px;
+            cursor: crosshair;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        #school-map {
+        #map-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 160px;
+            height: 160px;
+            transition: all 0.3s ease;
+            z-index: 999;
+            overflow: hidden;
+        }
+
+        #map-container:hover {
+            width: 320px;
+            height: 320px;
+        }
+
+        #minimap {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            cursor: crosshair;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.25);
+            transform: rotate(-90deg);
+            transition: transform 0.3s ease;
         }
 
         #result {
@@ -51,19 +63,21 @@
     </style>
 </head>
 <body>
-    <div id="left">
-        <h2>Guess where this is in the school!</h2>
-        <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}" alt="Location">
-        <p id="result"></p>
-    </div>
+    <div id="container">
+        <div id="main-image">
+            <h1>Guess where this image is in the school!</h1>
+            <img id="location-image" src="{{ url_for('static', filename='images/' + location.image) }}?v={{ cache_buster }}" alt="Location" data-id="{{ image_id }}">
+            <p id="result"></p>
+        </div>
 
-    <div id="right">
-        <img id="school-map" src="{{ url_for('static', filename='images/map-placeholder.png') }}" alt="School Map">
+        <div id="map-container">
+            <img id="minimap" src="{{ url_for('static', filename='images/map-placeholder.png') }}?v={{ cache_buster }}" alt="School Map">
+        </div>
     </div>
 
     <script>
     window.onload = function () {
-        const map = document.getElementById('school-map');
+        const map = document.getElementById('minimap');
 
         map.addEventListener('click', function (event) {
             const rect = map.getBoundingClientRect();
