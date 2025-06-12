@@ -1,10 +1,10 @@
 import os
 import random
 import math
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory, session
 
 app = Flask(__name__)
-
+app.secret_key = os.environ.get('SECRET_KEY', 'dev')
 
 image_positions = {
     1: (4682,3802),
@@ -24,14 +24,36 @@ image_positions = {
     15: (1100, 1000)
 }
 
+def calculate_score(distance):
+    if distance < 20:
+        return 100
+    elif distance < 50:
+        return 75
+    elif distance < 100:
+        return 50
+    elif distance < 150:
+        return 25
+    elif distance < 200:
+        return 10
+    else:
+        return 0
+
 @app.route('/')
 def index():
+    session.clear()
     cache_buster = random.randint(1000, 9999)
     return render_template('index.html', cache_buster=cache_buster)
 
 @app.route('/next')
 def next_image():
-    image_id = random.choice(list(image_positions.keys()))
+    used = session.get('used_images', [])
+    all_ids = list(image_positions.keys())
+    available = [i for i in all_ids if i not in used]
+    if not available:
+        return jsonify({'end': True})
+    image_id = random.choice(available)
+    used.append(image_id)
+    session['used_images'] = used
     image_filename = f"{image_id}.png"
     return jsonify({
         "image": image_filename,
@@ -50,9 +72,22 @@ def guess():
 
     true_x, true_y = image_positions[image_id]
     distance = math.sqrt((true_x - guess_x)**2 + (true_y - guess_y)**2)
-    score = max(0, int(100 - distance))
-
+    score = calculate_score(distance)
+    scores = session.get('scores', [])
+    scores.append(score)
+    session['scores'] = scores
+    total_score = sum(scores)
     return jsonify({
         "distance": int(distance),
-        "score": score
+        "score": score,
+        "total_score": total_score,
+        "round": len(scores)
     })
+
+@app.route('/restart', methods=['POST'])
+def restart():
+    session.clear()
+    return jsonify({'ok': True})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
