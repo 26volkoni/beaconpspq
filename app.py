@@ -5,14 +5,23 @@ from flask import Flask, render_template, jsonify, request, send_from_directory
 
 app = Flask(__name__)
 
-# Mock database of image positions on the map (image_id: (x, y))
-# Replace these with real coordinates based on your minimap.
+
 image_positions = {
     1: (50, 100),
     2: (180, 220),
     3: (300, 60),
     4: (90, 170),
     5: (210, 90),
+    6: (400, 300),
+    7: (150, 250),
+    8: (350, 200),
+    9: (500, 400),
+    10: (600, 500),
+    11: (700, 600),
+    12: (800, 700),
+    13: (900, 800),
+    14: (1000, 900),
+    15: (1100, 1000)
 }
 
 @app.route('/')
