@@ -42,8 +42,9 @@
         }
 
         #map-container:hover {
-            width: 320px;
-            height: 320px;
+        width: 700px;
+        height: auto;
+        aspect-ratio: 6250 / 4419;
         }
 
         #minimap {
@@ -52,7 +53,7 @@
             object-fit: cover;
             border-radius: 10px;
             box-shadow: 0 0 12px rgba(0,0,0,0.25);
-            transform: rotate(-90deg);
+            /* Remove any CSS rotate here since image itself is rotated */
             transition: transform 0.3s ease;
         }
 
@@ -98,7 +99,7 @@
     <script>
     let round = 0;
     const maxRounds = 5;
-    const roundScores = [];
+    let totalScore = 0;
     let timer;
 
     function loadImage(data) {
@@ -116,6 +117,10 @@
         fetch('/next')
             .then(res => res.json())
             .then(data => {
+                if(data.end) {
+                    endGame();
+                    return;
+                }
                 round++;
                 document.getElementById('progress').style.width = `${(round / maxRounds) * 100}%`;
                 document.getElementById('result').textContent = "";
@@ -123,16 +128,17 @@
 
                 clearTimeout(timer);
                 timer = setTimeout(() => {
-                    roundScores.push(0);
+                    // No guess, zero score for this round
+                    totalScore += 0;
                     nextRound();
-                }, 180000);
+                }, 180000); // 3 minutes per round
             })
             .catch(err => console.error("Failed to load next image:", err));
     }
 
     function endGame() {
         clearTimeout(timer);
-        alert("Game Over!\nScores: " + roundScores.join(", "));
+        alert(`Game Over!\nYou scored ${totalScore} out of ${maxRounds * 100} points!`);
     }
 
     window.onload = function () {
@@ -156,8 +162,12 @@
             })
             .then(response => response.json())
             .then(result => {
-                document.getElementById('result').textContent = `Distance: ${result.distance} pixels`;
-                roundScores.push(result.score);
+                if(result.error){
+                    alert(result.error);
+                    return;
+                }
+                totalScore += result.score;
+                document.getElementById('result').textContent = `Distance: ${result.distance}px, Score: ${result.score}`;
                 nextRound();
             })
             .catch(error => console.error('Error:', error));
